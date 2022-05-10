@@ -1,0 +1,7 @@
+Kullanýlan kütüphaneler
+
+--os
+--numpy
+--matplotlib.pyplot
+--tensorflow (version:2.2.0-rc4)
+--tensorflow_hub

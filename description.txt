@@ -1,0 +1,34 @@
+Bir kaynak kod düzenleyici üzerinden(ben VScode kullandým) "inferences.py","model.h5" dosyalarý yüklenir. Bu dosyalarla ayný dizine "Images" onun altýna "Test" ve onun da altýna "Armut", "Cilek", "Elma_Kirmizi", "Elma_Yesil", "Mandalina", "Muz", "Portakal" adlarýnda dosyalar açýlýr ve bunlarýn altýna ilgli resimler eklenir.
+
+Bu iþlemden sonra "inferences.py" dosyasý çalýþtýrýlýr, ekrana önceden train ettiðim modelin summary bilgileri, örnek bir test batchinde 30 adet resim ve prediction isimleri, son olarak da test datasýnýn loss ve accuracy deðerleri gelir.
+
+Image Test datasý ImageDataGenerator'da batch olarak(herbir batch'de 256 image var) yaratýldýðý için test ederken aþaðýdaki "n" aralýðýný [0,256) olarak belirleyebilrsiniz. 
+
+#buradaki n deðeri n**2, n*20 gibi farklý kombinasyonlar alabilir. Dikkat edlmesi gereken batch size limitini aþmamak
+for n in range(10):
+    plt.imshow(test[0][0][n])
+    plt.title(predictions[n])
+    plt.show()
+
+Eðer farklý bir batch'deki data test edilmek istenirse, örneðin ikinci batch = test[1][0][n], n<256. Bu durumda prediction[n+256] olarak deðiþtirilmelidir
+
+Not:model.evaluate çalýþtýrýldýktan sonra kod tekrar test edilecekse(plot edilecekse) "inferences.py" kodunun aþaðýdaki parçasý tekrar çalýþýrýlmalýdýr:
+
+#Test image oluþturma
+STEP_SIZE_TEST=test_generator.n//test_generator.batch_size
+test_generator.reset()
+test=test_generator
+pred=reloaded_keras_model.predict(test,
+steps=STEP_SIZE_TEST,
+verbose=1)
+
+#Prediction label yaratma
+predicted_class_indices=np.argmax(pred,axis=1)
+labels = (test.class_indices)
+labels = dict((v,k) for k,v in labels.items())
+predictions = [labels[k] for k in predicted_class_indices]
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"inferences.py" dosyasýnda "train.py" dosyasýnda train ettiðim modeli load ediyorum. "model.py" dosyasýnda tüm resim datalarýný train(%60), validation(%20) ve test(%20) ayrýlmýþ halleri 224*224 shape, 256 batch sizede ImageDataGenerator() tarafýndan kümelendirimiþtir. Ardýndan Tensor_Hub üzerinden MobileNet transfer learning algoritmasý load edilerek modelin ilk kýsmý oluþturulmuþ sonrasýnda "Dense" ve "Drop" layerlar eklenmiþtir ve en sonda 7 output class olacak þekilde model create edilmiþtir. Model uygun parametrelerle compile ve fit edildikten sonra "model.h5" ismi ile kaydedilmiþtir. "inferences.py" dosyasýnda bu model load edilerek prediction yapýlmýþtýr.
